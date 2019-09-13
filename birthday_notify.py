@@ -7,25 +7,30 @@ import logging
 import traceback
 
 current_path = os.path.dirname(os.path.abspath(__file__))
-logging.basicConfig(filename=current_path + '/app.log', level=logging.INFO)
-log = logging.getLogger(__name__) 
+logging.basicConfig(filename=current_path + "/app.log", level=logging.INFO)
+log = logging.getLogger(__name__)
 
 import env_vars
+
 # Uncaught Exception Logging
 def uncaught_exception_handler(*exc_info):
     exc_text = "".join(traceback.format_exception(*exc_info))
-    log.error(f"Uncaught exception: {exc_text}")
+    log.error("Uncaught exception: {}".format(exc_text))
+
+
 sys.excepthook = uncaught_exception_handler
 
-env_vars.load_file(current_path + "/.env")  
+env_vars.load_file(current_path + "/.env")
 airtable_base_id, airtable_key, ifttt_maker_trigger, ifttt_key = env_vars.get_required(
     ["AIRTABLE_BASE_ID", "AIRTABLE_KEY", "IFTTT_MAKER_TRIGGER", "IFTTT_KEY"]
 )
 
 res = request.urlopen(
-    f"https://api.airtable.com/v0/{airtable_base_id}/People?filterByFormula={{Birthday}}&api_key={airtable_key}"
+    "https://api.airtable.com/v0/{}/People?filterByFormula={{Birthday}}&api_key={}".format(
+        airtable_base_id, airtable_key
+    )
 )
-records = json.loads(res.read())["records"]
+records = json.loads(res.read().decode())["records"]
 
 todays_bdays = []
 for r in records:
@@ -44,10 +49,12 @@ bday_str = ", ".join(todays_bdays)
 
 # Launch IFTTT Notification with full list of names
 if len(todays_bdays) != 0:
-    log.info(f"{len(todays_bdays)} birthdays today: {bday_str}")
+    log.info("{} birthdays today: {}".format(len(todays_bdays), bday_str))
     encoded_bday_str = parse.quote(bday_str)
     res2 = request.urlopen(
-        f"https://maker.ifttt.com/trigger/{ifttt_maker_trigger}/with/key/{ifttt_key}?value1={encoded_bday_str}"
+        "https://maker.ifttt.com/trigger/{}/with/key/{}?value1={}".format(
+            ifttt_maker_trigger, ifttt_key, encoded_bday_str
+        )
     )
 else:
     log.info("0 birthdays today")
