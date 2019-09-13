@@ -22,8 +22,17 @@ def load_file(filename='.env'):
 
 def get_required(required_vars):
     """Confirm that the passed environment vars exist and return the values"""
-    log.warning("env_vars.get_required() not fully implemented") # TODO
     var_values = []
+    missing_vars = []
     for var_name in required_vars:
-        var_values.append(os.environ[var_name])
+        try:
+            var_values.append(os.environ[var_name])
+        except KeyError:
+            missing_vars.append(var_name)
+
+    if len(missing_vars) != 0:
+        missing_vars = ', '.join(missing_vars)
+        log.error(f"Missing environment variables: {missing_vars}")
+        exit(1)
+
     return var_values
