@@ -7,8 +7,12 @@ import logging
 import traceback
 
 current_path = os.path.dirname(os.path.abspath(__file__))
-logging.basicConfig(filename=current_path + "/app.log", level=logging.INFO)
-log = logging.getLogger(__name__)
+logging.basicConfig(
+    filename=current_path + "/app.log",
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s - [%(name)s] %(message)s",
+)
+log = logging.getLogger('birthday_notify')
 
 import env_vars
 

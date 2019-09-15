@@ -19,7 +19,8 @@ def load_file(filename=".env"):
             key = key.strip()
             value = value.strip()
 
-            os.environ.setdefault(key, value)
+            if len(value) != 0:
+                os.environ.setdefault(key, value)
 
 
 def get_required(required_vars):
@@ -28,7 +29,13 @@ def get_required(required_vars):
     missing_vars = []
     for var_name in required_vars:
         try:
-            var_values.append(os.environ[var_name])
+            var_value = os.environ[var_name]
+
+            # If the environment variable is set but blank, consider it missing.
+            if len(var_value) != 0:
+                var_values.append(var_value)
+            else:
+                missing_vars.append(var_name)
         except KeyError:
             missing_vars.append(var_name)
 
