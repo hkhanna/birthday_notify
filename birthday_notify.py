@@ -25,8 +25,8 @@ def uncaught_exception_handler(*exc_info):
 sys.excepthook = uncaught_exception_handler
 
 env_vars.load_file(current_path + "/.env")
-airtable_base_id, airtable_key, ifttt_maker_trigger, ifttt_key = env_vars.get_required(
-    ["AIRTABLE_BASE_ID", "AIRTABLE_KEY", "IFTTT_MAKER_TRIGGER", "IFTTT_KEY"]
+airtable_base_id, airtable_key, pushover_user_key, pushover_app_token = env_vars.get_required(
+    ["AIRTABLE_BASE_ID", "AIRTABLE_KEY", "PUSHOVER_USER_KEY", "PUSHOVER_APP_TOKEN"]
 )
 
 res = request.urlopen(
@@ -51,14 +51,16 @@ for r in records:
 
 bday_str = ", ".join(todays_bdays)
 
-# Launch IFTTT Notification with full list of names
+# Launch Pushover Notification with full list of names
 if len(todays_bdays) != 0:
     log.info("{} birthdays today: {}".format(len(todays_bdays), bday_str))
-    encoded_bday_str = parse.quote(bday_str)
-    res2 = request.urlopen(
-        "https://maker.ifttt.com/trigger/{}/with/key/{}?value1={}".format(
-            ifttt_maker_trigger, ifttt_key, encoded_bday_str
-        )
-    )
+    data = {
+        "token": pushover_app_token,
+        "user": pushover_user_key,
+        "message": bday_str
+    }
+    encoded_data = parse.urlencode(data).encode('ascii')
+    res2 = request.Request("https://api.pushover.net/1/messages.json", method="POST", data=encoded_data)
+    request.urlopen(res2)
 else:
     log.info("0 birthdays today")
