@@ -1,4 +1,5 @@
 import os
+import time
 import sys
 import json
 from urllib import request, parse
@@ -61,6 +62,14 @@ if len(todays_bdays) != 0:
     }
     encoded_data = parse.urlencode(data).encode('ascii')
     res2 = request.Request("https://api.pushover.net/1/messages.json", method="POST", data=encoded_data)
-    request.urlopen(res2)
+    try:
+        request.urlopen(res2)
+    except Exception:  # Sometimes Pushover has problems
+        log.exception("Problem encountered while calling out to Pushover. Waiting 10 minutes and trying again.")
+        time.sleep(600)
+        res3 = request.Request("https://api.pushover.net/1/messages.json", method="POST", data=encoded_data)
+        request.urlopen(res3)
+        log.info("Retry was successful")
+
 else:
     log.info("0 birthdays today")
